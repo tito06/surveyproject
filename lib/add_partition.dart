@@ -1,5 +1,6 @@
 import 'dart:ffi';
 
+import 'package:cane_survey/shared_pref_helper.dart';
 import 'package:cane_survey/survey_viewmodel.dart';
 import 'package:flutter/material.dart';
 
@@ -33,6 +34,15 @@ class _AreaScreenState extends State<AreaScreen> {
   String selectedGrowerCode = "";
   String? selectedGrower;
   bool isGrowerLoading = true;
+  String? token = "";
+
+  void _loadToken() async {
+    final authtoken = await SharedPrefHelper.getToken();
+    setState(() {
+      token = authtoken;
+    });
+    print('Token: $token');
+  }
 
   Future<void> _fetchGrowerName(String villId) async {
     Map<String, String> requestDataForGrower = {
@@ -41,7 +51,8 @@ class _AreaScreenState extends State<AreaScreen> {
     };
     try {
       // Call the API
-      final items = await _surveyViewmodel.fetchGrowers(requestDataForGrower);
+      final items =
+          await _surveyViewmodel.fetchGrowers(token, requestDataForGrower);
       setState(() {
         growerData = items;
         selectedGrowerCode =
@@ -190,6 +201,7 @@ class _AreaScreenState extends State<AreaScreen> {
   @override
   void initState() {
     super.initState();
+    _loadToken();
     balAreaPercent = 100 - widget.balanceArea;
   }
 

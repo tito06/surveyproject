@@ -1,5 +1,6 @@
 import 'package:cane_survey/location_screen.dart';
 import 'package:cane_survey/partition.dart';
+import 'package:cane_survey/shared_pref_helper.dart';
 import 'package:cane_survey/survey_viewmodel.dart';
 import 'package:flutter/material.dart';
 
@@ -33,20 +34,35 @@ class _InputFormScreenState extends State<InputFormScreen> {
   bool isUnknownGrower = false;
   String? selectedPartion;
   List<Map<String, dynamic>>? coordinates;
+  String? token;
 
   @override
   void initState() {
     super.initState();
-    // Set some default values for inputs
-    _fetchVillageName();
+    _initializeData();
     _inputController1.text = "";
     _inputController2.text = "";
+  }
+
+  Future<void> _initializeData() async {
+    await _loadToken();
+
+    await _fetchVillageName();
+  }
+
+  Future<void> _loadToken() async {
+    final authtoken = await SharedPrefHelper.getToken();
+    setState(() {
+      token = authtoken ?? "";
+    });
+    print('Token: $token');
   }
 
   Future<void> _fetchVillageName() async {
     Map<String, String> requestDataForVillage = {"mill_id": "203"};
     try {
-      final items = await _surveyViewmodel.fetchVillages(requestDataForVillage);
+      final items =
+          await _surveyViewmodel.fetchVillages(token, requestDataForVillage);
       setState(() {
         villageData = items;
         selectedVillageCode =
@@ -68,7 +84,8 @@ class _InputFormScreenState extends State<InputFormScreen> {
       "village_id": villId
     };
     try {
-      final items = await _surveyViewmodel.fetchGrowers(requestDataForGrower);
+      final items =
+          await _surveyViewmodel.fetchGrowers(token, requestDataForGrower);
       setState(() {
         growerData = items;
         selectedGrowerCode =

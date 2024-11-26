@@ -3,11 +3,8 @@ import 'package:cane_survey/master_model.dart';
 import 'package:http/http.dart' as http;
 
 class SurveyViewmodel {
-  final String token =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2NhbmVkZXYuYmlybGEtc3VnYXIuY29tL2FwaS9sb2dpbiIsImlhdCI6MTczMjEwMjcyOCwiZXhwIjoxNzMyNzA3NTI4LCJuYmYiOjE3MzIxMDI3MjgsImp0aSI6IkVmR2pJR2xPaDQ0S3hlTnAiLCJzdWIiOiIyMDIxIiwicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.wDBhRF9xhP3sypm5b7Hb5ZDxs3POxY2YyAWd1s6vtqg";
-
   Future<List<Map<String, String>>> fetchVillages(
-      Map<String, String> parameters) async {
+      String? token, Map<String, String> parameters) async {
     final response = await http.post(
       Uri.parse("https://canedev.birla-sugar.com/api/fetchVillage"),
       body: json.encode(parameters),
@@ -40,7 +37,7 @@ class SurveyViewmodel {
   //Grower List
 
   Future<List<Map<String, String>>> fetchGrowers(
-      Map<String, String> parameters) async {
+      String? token, Map<String, String> parameters) async {
     final response = await http.post(
       Uri.parse("https://canedev.birla-sugar.com/api/fetchGrower"),
       body: json.encode(parameters),
@@ -76,7 +73,7 @@ class SurveyViewmodel {
 
   // api for variety
   Future<Map<String, List<Map<String, String>>>> fetchMaster(
-      Map<String, String> parameters) async {
+      String? token, Map<String, String> parameters) async {
     try {
       final response = await http.post(
         Uri.parse("https://canedev.birla-sugar.com/api/fetchAllmaster"),

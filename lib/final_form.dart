@@ -1,4 +1,5 @@
 import 'package:cane_survey/final_check_survey_data.dart';
+import 'package:cane_survey/shared_pref_helper.dart';
 import 'package:cane_survey/survey_viewmodel.dart';
 import 'package:flutter/material.dart';
 
@@ -64,17 +65,33 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
   // Loading state
   bool isLoading = true;
   String errorMessage = '';
+  String? token = "";
 
   @override
   void initState() {
     super.initState();
-    _fetchMasterData();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await _loadToken();
+
+    await _fetchMasterData();
+  }
+
+  Future<void> _loadToken() async {
+    final authtoken = await SharedPrefHelper.getToken();
+    setState(() {
+      token = authtoken;
+    });
+    print('Token: $token');
   }
 
   Future<void> _fetchMasterData() async {
     Map<String, String> requestDataForVillage = {"mill_id": "203"};
     try {
-      final items = await _surveyViewmodel.fetchMaster(requestDataForVillage);
+      final items =
+          await _surveyViewmodel.fetchMaster(token, requestDataForVillage);
       setState(() {
         pest = items['pests'] ?? [];
         variety = items['variety'] ?? [];

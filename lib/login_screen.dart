@@ -1,6 +1,6 @@
 import 'package:cane_survey/dashboard_screen.dart';
 import 'package:cane_survey/login_view_model.dart';
-import 'package:cane_survey/new_survey.dart';
+import 'package:cane_survey/shared_pref_helper.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -28,27 +28,32 @@ class _LoginScreenState extends State<LoginScreen> {
       };
 
       try {
-        final log = await _loginViewModel.login(requestBody);
+        final loginResponse = await _loginViewModel.login(requestBody);
+        if (loginResponse.containsKey('token')) {
+          await SharedPrefHelper.saveToken(loginResponse['token']);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    DashboardScreen() // Passing data to the next screen
+                ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Login failed. Token not found.')),
+          );
+        }
       } catch (e) {
         print("excepton : $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed. Please try again.')),
+        );
       }
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                DashboardScreen() // Passing data to the next screen
-            ),
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
       );
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(content: Text('Please fill all fields')),
-      // );
-      // return;
     }
-
-    // Handle login logic here
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Login successful for $username')),
-    );
   }
 
   @override
@@ -69,13 +74,13 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
+                const Icon(
                   Icons.agriculture,
                   size: 100,
                   color: Colors.white,
                 ),
-                SizedBox(height: 20),
-                Text(
+                const SizedBox(height: 20),
+                const Text(
                   "Cane Survey App",
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -84,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 TextField(
                   controller: _usernameController,
                   decoration: InputDecoration(
@@ -96,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
@@ -109,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextField(
                   controller: _millIdController,
                   decoration: InputDecoration(
@@ -121,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 ElevatedButton(
                   onPressed: _submit,
                   style: ElevatedButton.styleFrom(
@@ -131,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Log in',
                     style: TextStyle(
                       fontSize: 18,
