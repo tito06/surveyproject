@@ -404,8 +404,8 @@ class Pests {
 class Variety {
   int? vRCODE;
   String? vRNAME;
-  String? vRCATEG;
-  String? vRMATURITY;
+  int? vRCATEG;
+  int? vRMATURITY;
   String? seedRate;
 
   Variety(
@@ -753,21 +753,18 @@ class AgriUnit {
 
 class Season {
   String? seasonName;
-  int? id;
-  String? sYEAR;
+  int? sYEAR;
 
-  Season({this.seasonName, this.id, this.sYEAR});
+  Season({this.seasonName, this.sYEAR});
 
   Season.fromJson(Map<String, dynamic> json) {
     seasonName = json['season_name'];
-    id = json['id'];
     sYEAR = json['S_YEAR'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['season_name'] = this.seasonName;
-    data['id'] = this.id;
     data['S_YEAR'] = this.sYEAR;
     return data;
   }

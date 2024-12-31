@@ -1,7 +1,7 @@
 import 'package:cane_survey/location_screen.dart';
-import 'package:cane_survey/partition.dart';
+import 'package:cane_survey/screens/partition.dart';
 import 'package:cane_survey/shared_pref_helper.dart';
-import 'package:cane_survey/survey_viewmodel.dart';
+import 'package:cane_survey/view_models/survey_viewmodel.dart';
 import 'package:flutter/material.dart';
 
 class InputFormScreen extends StatefulWidget {
@@ -19,6 +19,7 @@ class _InputFormScreenState extends State<InputFormScreen> {
   // Controllers for the input fields
   final TextEditingController _inputController1 = TextEditingController();
   final TextEditingController _inputController2 = TextEditingController();
+  final TextEditingController _inputController3 = TextEditingController();
 
   // Dummy data for dropdowns
 
@@ -35,6 +36,9 @@ class _InputFormScreenState extends State<InputFormScreen> {
   String? selectedPartion;
   List<Map<String, dynamic>>? coordinates;
   String? token;
+  String? millId;
+  double _area = 0.0;
+  double? lat_1, lat_2, lat_3, lat_4, long_1, long_2, long_3, long_4;
 
   @override
   void initState() {
@@ -52,14 +56,16 @@ class _InputFormScreenState extends State<InputFormScreen> {
 
   Future<void> _loadToken() async {
     final authtoken = await SharedPrefHelper.getToken();
+    final authmillId = await SharedPrefHelper.getMillId();
+
     setState(() {
       token = authtoken ?? "";
+      millId = authmillId;
     });
-    print('Token: $token');
   }
 
   Future<void> _fetchVillageName() async {
-    Map<String, String> requestDataForVillage = {"mill_id": "203"};
+    Map<String, String> requestDataForVillage = {"mill_id": "$millId"};
     try {
       final items =
           await _surveyViewmodel.fetchVillages(token, requestDataForVillage);
@@ -80,7 +86,7 @@ class _InputFormScreenState extends State<InputFormScreen> {
 
   Future<void> _fetchGrowerName(String villId) async {
     Map<String, String> requestDataForGrower = {
-      "mill_id": "203",
+      "mill_id": "$millId",
       "village_id": villId
     };
     try {
@@ -94,7 +100,7 @@ class _InputFormScreenState extends State<InputFormScreen> {
         isGrowerLoading = false;
       });
     } catch (e) {
-      print("Error fetching village name: $e");
+      print("Error fetching grower name: $e");
       setState(() {
         isVillageLoading = false;
       });
@@ -107,7 +113,7 @@ class _InputFormScreenState extends State<InputFormScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Settings Applied"),
+          title: const Text("Settings Applied"),
           content: Text(
               "Village: $selectedVillage\nGrower: $selectedGrower\nUnknown Grower: $isUnknownGrower"),
           actions: [
@@ -115,7 +121,7 @@ class _InputFormScreenState extends State<InputFormScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -123,18 +129,46 @@ class _InputFormScreenState extends State<InputFormScreen> {
     );
   }
 
+  void processData(List<Map<String, dynamic>>? data) {
+    for (int i = 0; i < data!.length && i < 4; i++) {
+      switch (i) {
+        case 0:
+          lat_1 = data[i]['latitude'];
+          long_1 = data[i]['longitude'];
+          continue;
+        case 1:
+          lat_2 = data[i]['latitude'];
+          long_2 = data[i]['longitude'];
+          continue;
+        case 2:
+          lat_3 = data[i]['latitude'];
+          long_3 = data[i]['longitude'];
+          continue;
+        case 3:
+          lat_4 = data[i]['latitude'];
+          long_4 = data[i]['longitude'];
+          break;
+      }
+    }
+  }
+
   void _surveyData() {
     // Collect the data into a JSON object
     Map<String, dynamic> surveyData = {
+      'mill_id': '$millId',
       'plot_no': _inputController1.text,
-      'plot_serial': _inputController2.text,
-      'village': selectedVillage,
-      'villageCode': selectedVillageCode,
-      'growerCode': (isUnknownGrower ? "" : selectedGrowerCode),
-      'grower': (isUnknownGrower ? "Unknown Grower" : selectedGrower),
-      'coordinates': coordinates,
-      'area':
-          _inputController1.text, // You can update with the actual area input
+      'plot_serial_no': _inputController2.text,
+      'village_code': selectedVillageCode,
+      'grower_code': (isUnknownGrower ? "" : selectedGrowerCode),
+      'lat_1': lat_1,
+      'long_1': long_1,
+      'lat_2': lat_2,
+      'long_2': long_2,
+      'lat_3': lat_3,
+      'long_3': long_3,
+      'lat_4': lat_4,
+      'long_4': long_4,
+      'total_area': _area, // You can update with the actual area input
     };
 
     // Pass the JSON object to the next screen
@@ -177,19 +211,19 @@ class _InputFormScreenState extends State<InputFormScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (isVillageLoading) // Show the loader while fetching village data
-                      Center(child: CircularProgressIndicator()),
+                      const Center(child: CircularProgressIndicator()),
                     if (!isVillageLoading) ...[
                       // Row containing first two input boxes and "Set" button
 
                       Row(
                         children: [
                           Expanded(
-                            child:
-                                buildTextField("Plot No.", _inputController1),
+                            child: buildTextFieldPlot(
+                                "Plot No.", _inputController1),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: buildTextField(
+                            child: buildTextFieldPlot(
                                 "Plot Seriel", _inputController2),
                           ),
                           const SizedBox(width: 10),
@@ -210,7 +244,7 @@ class _InputFormScreenState extends State<InputFormScreen> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       _buildDropdownField(
                           "Select Village",
@@ -218,7 +252,7 @@ class _InputFormScreenState extends State<InputFormScreen> {
                               .map((village) =>
                                   "${village['V_CODE']} / ${village['V_NAME']}")
                               .toList(),
-                          selectedVillageCode, (String? newValue) {
+                          selectedVillageCode, (String? newValue) async {
                         setState(() {
                           selectedVillageCode =
                               newValue != null ? newValue.split(' / ')[0] : '';
@@ -227,16 +261,24 @@ class _InputFormScreenState extends State<InputFormScreen> {
                           growerData = [];
                           isGrowerLoading = true;
                         });
+                        //svae here
+
+                        if (selectedVillage != null &&
+                            selectedVillage!.isNotEmpty) {
+                          await SharedPrefHelper.saveVillageName(
+                              selectedVillage!);
+                        }
                         try {
                           isGrowerLoading = true;
                           _fetchGrowerName(selectedVillageCode);
                         } catch (e) {}
                       }),
 
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       if (isGrowerLoading) // Show the loader while fetching village data
-                        Center(child: CircularProgressIndicator()),
+                        const Center(child: CircularProgressIndicator()),
+
                       if (!isGrowerLoading) ...[
                         _buildDropdownField(
                             "Select Growers",
@@ -255,7 +297,7 @@ class _InputFormScreenState extends State<InputFormScreen> {
                         })
                       ],
 
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Row(
                         children: [
                           Checkbox(
@@ -269,15 +311,15 @@ class _InputFormScreenState extends State<InputFormScreen> {
                               });
                             },
                           ),
-                          Text("Unknown Grower"),
+                          const Text("Unknown Grower"),
                         ],
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       // Conditionally Render Coordinates
                       if (coordinates != null && coordinates != " ") ...[
-                        Text("Coordinates"),
-                        SizedBox(height: 8),
+                        const Text("Coordinates"),
+                        const SizedBox(height: 8),
                         ListView.builder(
                           shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
@@ -295,8 +337,9 @@ class _InputFormScreenState extends State<InputFormScreen> {
                           },
                         ),
                         // SizedBox(height: 8),
-                        buildTextField("Area", _inputController1),
-                        SizedBox(height: 20),
+                        buildTextField("Area", _inputController3,
+                            _area.toStringAsFixed(5)),
+                        const SizedBox(height: 20),
                         Center(
                           child: ElevatedButton(
                             style: ButtonStyle(
@@ -316,7 +359,7 @@ class _InputFormScreenState extends State<InputFormScreen> {
                             style: TextStyle(fontStyle: FontStyle.italic),
                           ),
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         Center(
                           child: ElevatedButton(
                             style: ButtonStyle(
@@ -331,11 +374,13 @@ class _InputFormScreenState extends State<InputFormScreen> {
 
                               if (result != null) {
                                 setState(() {
-                                  coordinates = result;
+                                  coordinates = result["coordinate"];
+                                  _area = result["area"];
+                                  processData(coordinates);
                                 });
                               }
                             },
-                            child: Text(
+                            child: const Text(
                               "Add Coordinate",
                               style: TextStyle(color: Colors.black),
                             ),
@@ -386,7 +431,8 @@ class _InputFormScreenState extends State<InputFormScreen> {
     );
   }
 
-  Widget buildTextField(String label, TextEditingController? controller) {
+  Widget buildTextField(
+      String label, TextEditingController? controller, String? area) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -398,6 +444,27 @@ class _InputFormScreenState extends State<InputFormScreen> {
         TextField(
           controller: controller,
           decoration: InputDecoration(
+            hintText: "${_area.toStringAsFixed(5)}",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildTextFieldPlot(String label, TextEditingController? controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: label,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           ),
         ),

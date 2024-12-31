@@ -1,12 +1,12 @@
 import 'dart:convert';
-import 'package:cane_survey/master_model.dart';
+import 'package:cane_survey/models/master_model.dart';
 import 'package:http/http.dart' as http;
 
 class SurveyViewmodel {
   Future<List<Map<String, String>>> fetchVillages(
       String? token, Map<String, String> parameters) async {
     final response = await http.post(
-      Uri.parse("https://canedev.birla-sugar.com/api/fetchVillage"),
+      Uri.parse("https://cda.namisite.in/api/fetchVillage"),
       body: json.encode(parameters),
       headers: {
         'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ class SurveyViewmodel {
   Future<List<Map<String, String>>> fetchGrowers(
       String? token, Map<String, String> parameters) async {
     final response = await http.post(
-      Uri.parse("https://canedev.birla-sugar.com/api/fetchGrower"),
+      Uri.parse("https://cda.namisite.in/api/fetchGrower"),
       body: json.encode(parameters),
       headers: {
         'Content-Type': 'application/json',
@@ -49,6 +49,8 @@ class SurveyViewmodel {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+
+      print("Token -> $token");
 
       if (data is Map<String, dynamic> && data['data'] is List) {
         final growers = data['data'] as List;
@@ -76,7 +78,7 @@ class SurveyViewmodel {
       String? token, Map<String, String> parameters) async {
     try {
       final response = await http.post(
-        Uri.parse("https://canedev.birla-sugar.com/api/fetchAllmaster"),
+        Uri.parse("https://cda.namisite.in/api/fetchAllmaster"),
         body: json.encode(parameters),
         headers: {
           'Content-Type': 'application/json',
@@ -150,6 +152,14 @@ class SurveyViewmodel {
                       })
                   .toList() ??
               [],
+
+          "disease": masterModel.data?.disease
+                  ?.map((disease) => {
+                        "id": disease.dCODE.toString(),
+                        "disease_name": disease.dDESC.toString()
+                      })
+                  .toList() ??
+              [],
           // Add similar mappings for other fields as needed
         };
 
@@ -160,6 +170,7 @@ class SurveyViewmodel {
       }
     } catch (error) {
       throw Exception("An error occurred: $error");
+      print(error);
     }
   }
 }

@@ -1,6 +1,8 @@
-import 'package:cane_survey/final_check_survey_data.dart';
+import 'dart:convert';
+
+import 'package:cane_survey/screens/final_check_survey_data.dart';
 import 'package:cane_survey/shared_pref_helper.dart';
-import 'package:cane_survey/survey_viewmodel.dart';
+import 'package:cane_survey/view_models/survey_viewmodel.dart';
 import 'package:flutter/material.dart';
 
 class AgricultureFormScreen extends StatefulWidget {
@@ -29,6 +31,7 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
   List<Map<String, String>> seedSource = [];
   List<Map<String, String>> nursery = [];
   List<Map<String, String>> plantingType = [];
+  List<Map<String, String>> diseaseType = [];
 
   String selectedVarietyCode = "";
   String selectedLandTypeCode = "";
@@ -38,6 +41,8 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
   String selectedSeedSourceCode = "";
   String selectedNurseryCode = "";
   String selectedPlantingCode = "";
+  String selectedDiseaseCode = "";
+
   String selectedVehicleCode = "";
   String selectedAgriImplementCode = "";
 
@@ -49,16 +54,11 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
   String? selectedSeedSourceType;
   String? selectedNurseryType;
   String? selectedPlantingType;
+  String? selectedDiseaseType;
 
   String? cropCycle;
   String? qualityType;
-  String? interCropType;
-  String? seedSourceType;
-  String? irrigationType;
-  String? diseaseType;
-  String? plantationType;
-  String? vehicleSource;
-  String? agriImplement;
+  String? disease;
   String? lastYearCropCycle;
   TextEditingController remarkController = TextEditingController();
 
@@ -66,6 +66,7 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
   bool isLoading = true;
   String errorMessage = '';
   String? token = "";
+  String? millId = "";
 
   @override
   void initState() {
@@ -81,26 +82,44 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
 
   Future<void> _loadToken() async {
     final authtoken = await SharedPrefHelper.getToken();
+    final authmillId = await SharedPrefHelper.getMillId();
+
     setState(() {
       token = authtoken;
+      millId = authmillId;
     });
-    print('Token: $token');
+  }
+
+  void printFullJson(Map<String, dynamic> jsonData) {
+    String jsonString = jsonEncode(jsonData);
+    debugPrint(jsonString, wrapWidth: 1024); // Adjust wrapWidth if needed
   }
 
   Future<void> _fetchMasterData() async {
-    Map<String, String> requestDataForVillage = {"mill_id": "203"};
+    Map<String, String> requestDataForVillage = {"mill_id": "$millId"};
     try {
       final items =
           await _surveyViewmodel.fetchMaster(token, requestDataForVillage);
+
+      // Deduplicate items using a Set
+      List<Map<String, String>> removeDuplicates(
+          List<Map<String, String>> list, String key) {
+        final seen = <String>{};
+        return list.where((item) => seen.add(item[key]!)).toList();
+      }
+
       setState(() {
-        pest = items['pests'] ?? [];
-        variety = items['variety'] ?? [];
-        landType = items['land_types'] ?? [];
-        irrigation = items['irrigation_source'] ?? [];
-        interCrop = items['inter_crops'] ?? [];
-        seedSource = items['seed_sources'] ?? [];
-        nursery = items['nursery'] ?? [];
-        plantingType = items['planting_methods'] ?? [];
+        pest = removeDuplicates(items['pests'] ?? [], 'pest_name');
+        variety = removeDuplicates(items['variety'] ?? [], 'VR_NAME');
+        landType = removeDuplicates(items['land_types'] ?? [], 'land_type');
+        irrigation = removeDuplicates(items['irrigation_source'] ?? [], 'NAME');
+        interCrop = removeDuplicates(items['inter_crops'] ?? [], 'CRP_NAME');
+        seedSource =
+            removeDuplicates(items['seed_sources'] ?? [], 'seed_source');
+        nursery = removeDuplicates(items['nursery'] ?? [], 'NAME');
+        plantingType =
+            removeDuplicates(items['planting_methods'] ?? [], 'planting_name');
+        diseaseType = removeDuplicates(items['disease'] ?? [], 'disease_name');
 
         selectedVarietyCode = variety.isNotEmpty ? variety[0]['VR_CODE']! : "-";
         selectedLandTypeCode = landType.isNotEmpty ? landType[0]['id']! : "-";
@@ -119,7 +138,6 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
   Widget build(BuildContext context) {
     // Initial surveyData from the previous screen (if any)
     Map<String, dynamic> surveyData = widget.surveyData ?? {};
-    print(surveyData);
 
     return Scaffold(
       appBar: AppBar(
@@ -178,19 +196,19 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
               // Row 2
               Row(
                 children: [
-                  Expanded(
-                    child: buildDropdown("Crop Cycle", (value) {
-                      setState(() {
-                        cropCycle = value;
-                        surveyData['cropCycle'] =
-                            cropCycle; // Add to surveyData
-                      });
-                    }),
-                  ),
-                  const SizedBox(width: 16),
+                  // Expanded(
+                  //   child: buildDropdown("Crop Cycle", (value) {
+                  //     setState(() {
+                  //       cropCycle = value;
+                  //       surveyData['crop_cycle'] =
+                  //           cropCycle; // Add to surveyData
+                  //     });
+                  //   }),
+                  // ),
+                  // const SizedBox(width: 16),
                   Expanded(
                     child: buildTextField("After Wheat", onChanged: (value) {
-                      surveyData['afterWheat'] = value;
+                      surveyData['after_wheat'] = value;
                     }),
                   ),
                 ],
@@ -198,25 +216,25 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
               const SizedBox(height: 16),
 
               // Single Dropdowns
-              buildDropdown("Quality Type", (value) {
-                setState(() {
-                  qualityType = value;
-                  surveyData['qualityType'] = qualityType; // Add to surveyData
-                });
-              }),
-              const SizedBox(height: 16),
-              _buildDropdownField(
-                  "Inter Crop Type",
-                  interCrop
-                      .map((interCrop) => "${interCrop['CRP_NAME']}")
-                      .toList(),
-                  selectedInterCropCode, (String? newValue) {
-                setState(() {
-                  selectedImterCropType = newValue ?? "";
-                  surveyData['inter_crop_type'] = selectedImterCropType;
-                });
-              }),
-              const SizedBox(height: 16),
+              // buildDropdown("Quality Type", (value) {
+              //   setState(() {
+              //     qualityType = value;
+              //     surveyData['quality_type'] = qualityType; // Add to surveyData
+              //   });
+              // }),
+              // const SizedBox(height: 16),
+              // _buildDropdownField(
+              //     "Inter Crop Type",
+              //     interCrop
+              //         .map((interCrop) => "${interCrop['CRP_NAME']}")
+              //         .toList(),
+              //     selectedInterCropCode, (String? newValue) {
+              //   setState(() {
+              //     selectedImterCropType = newValue ?? "";
+              //     surveyData['inter_crop_type'] = selectedImterCropType;
+              //   });
+              // }),
+              // const SizedBox(height: 16),
               _buildDropdownField(
                   "Seed Source Type",
                   seedSource
@@ -225,7 +243,7 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
                   selectedSeedSourceCode, (String? newValue) {
                 setState(() {
                   selectedSeedSourceType = newValue ?? "";
-                  surveyData['seed_type'] = selectedSeedSourceType;
+                  surveyData['seed_source_type'] = selectedSeedSourceType;
                 });
               }),
               const SizedBox(height: 16),
@@ -271,16 +289,22 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
                   selectedPestCode, (String? newValue) {
                 setState(() {
                   selectedPestType = newValue ?? "";
-                  surveyData['pest_type'] = selectedPestType;
+                  surveyData['pest'] = selectedPestType;
                 });
               }),
               const SizedBox(height: 16),
-              buildDropdown("Disease Type", (value) {
+              _buildDropdownField(
+                  "Disease Type",
+                  diseaseType
+                      .map((diseaseType) => "${diseaseType['disease_name']}")
+                      .toList(),
+                  selectedDiseaseCode, (String? newValue) {
                 setState(() {
-                  diseaseType = value;
-                  surveyData['diseaseType'] = diseaseType; // Add to surveyData
+                  selectedDiseaseType = newValue ?? "";
+                  surveyData['disease_type'] = selectedDiseaseType;
                 });
               }),
+
               const SizedBox(height: 16),
               _buildDropdownField(
                   "Plantation Type",
@@ -291,7 +315,7 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
                   selectedPlantingCode, (String? newValue) {
                 setState(() {
                   selectedPlantingType = newValue ?? "";
-                  surveyData['planting_type'] = selectedPlantingType;
+                  surveyData['plantation_type'] = selectedPlantingType;
                 });
               }),
               const SizedBox(height: 16),
@@ -317,7 +341,7 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
                           (String? newValue) {
                     setState(() {
                       selectedVehicleCode = newValue ?? "";
-                      surveyData['vehicleSource'] = selectedVehicleCode;
+                      surveyData['vechile_type'] = selectedVehicleCode;
                     });
                   })),
                   const SizedBox(width: 16),
@@ -328,8 +352,7 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
                           selectedAgriImplementCode, (String? newValue) {
                     setState(() {
                       selectedAgriImplementCode = newValue ?? "";
-                      surveyData['agri_implementation'] =
-                          selectedAgriImplementCode;
+                      surveyData['agri_implement'] = selectedAgriImplementCode;
                     });
                   })),
                 ],
@@ -337,14 +360,14 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
               const SizedBox(height: 16),
 
               // Single Dropdown and Remarks
-              buildDropdown("Last Year Crop Cycle", (value) {
-                setState(() {
-                  lastYearCropCycle = value;
-                  surveyData['lastYearCropCycle'] =
-                      lastYearCropCycle; // Add to surveyData
-                });
-              }),
-              const SizedBox(height: 16),
+              // buildDropdown("Last Year Crop Cycle", (value) {
+              //   setState(() {
+              //     lastYearCropCycle = value;
+              //     surveyData['last_year_crop_cycle'] =
+              //         lastYearCropCycle; // Add to surveyData
+              //   });
+              // }),
+              // const SizedBox(height: 16),
               buildTextField(
                 "Remark",
                 maxLength: 20,
@@ -361,6 +384,8 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
+                      printFullJson(surveyData);
+
                       // Navigate to SurveyDataScreen and pass the surveyData
                       Navigator.push(
                         context,

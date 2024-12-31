@@ -6,7 +6,7 @@ class LoginViewModel {
   Future<Map<String, dynamic>> login(Map<String, String> parameter) async {
     try {
       final response = await http.post(
-          Uri.parse("https://canedev.birla-sugar.com/api/login"),
+          Uri.parse("https://cda.namisite.in/api/login"),
           body: json.encode(parameter),
           headers: {
             'Content-Type': 'application/json',

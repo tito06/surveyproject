@@ -1,5 +1,5 @@
-import 'package:cane_survey/add_partition.dart';
-import 'package:cane_survey/final_form.dart';
+import 'package:cane_survey/screens/add_partition.dart';
+import 'package:cane_survey/screens/final_form.dart';
 import 'package:flutter/material.dart';
 
 class PartitionScreen extends StatefulWidget {
@@ -21,10 +21,11 @@ class _PartitionScreenState extends State<PartitionScreen> {
   @override
   void initState() {
     super.initState();
-    print(widget.surveyData);
     _inputPartition.text = "";
 
     selectedPartion = partion[0];
+
+    print(widget.surveyData);
   }
 
   @override
@@ -34,7 +35,7 @@ class _PartitionScreenState extends State<PartitionScreen> {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text(
+          title: const Text(
             "New Survey(2)",
             style: TextStyle(color: Colors.white),
           ),
@@ -44,7 +45,7 @@ class _PartitionScreenState extends State<PartitionScreen> {
             height: MediaQuery.of(context).size.height,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage(
+                image: const AssetImage(
                     'assets/bgm.png'), // Add your background image path
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
@@ -72,7 +73,7 @@ class _PartitionScreenState extends State<PartitionScreen> {
                                 selectedPartion = newValue;
                               });
                             },
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: "Numner of Partion",
                               border: OutlineInputBorder(),
                             ),
@@ -85,13 +86,13 @@ class _PartitionScreenState extends State<PartitionScreen> {
                               Expanded(
                                 child: TextField(
                                   controller: _inputPartition,
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                     labelText: "Your Share Area (%)",
                                     border: OutlineInputBorder(),
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 10),
+                              const SizedBox(width: 10),
                               ElevatedButton(
                                 style: ButtonStyle(
                                     backgroundColor:
@@ -104,7 +105,8 @@ class _PartitionScreenState extends State<PartitionScreen> {
                                       MaterialPageRoute(
                                           builder: (context) => AreaScreen(
                                                 balanceArea: double.parse(
-                                                    _inputPartition.value.text),
+                                                    _inputPartition.value.text
+                                                        .trim()),
                                                 surveyData: surveyData,
                                               )));
 
@@ -203,8 +205,8 @@ class _PartitionScreenState extends State<PartitionScreen> {
                                           const Color.fromARGB(
                                               255, 146, 214, 148))),
                               onPressed: () {
-                                surveyData['partition'] = selectedPartion;
-                                surveyData['area'] = areaData;
+                                surveyData['no_of_partition'] = selectedPartion;
+                                surveyData['share_area'] = areaData;
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(

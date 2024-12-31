@@ -14,6 +14,7 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
   double _distance = 0.0;
   double _area = 0.0;
   List<Map<String, dynamic>> _coordinates = [];
+  List<Map<String, dynamic>> _coordinatesTest = [];
 
   final int _maxCoordinates = 4;
 
@@ -78,6 +79,40 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
         });
       });
 
+      List<Map<String, dynamic>> manualCoordinates = [
+        {'latitude': 26.532582, 'longitude': 88.6796994}, // Point 1
+        {'latitude': 26.5323712, 'longitude': 88.6796012}, // Point 2
+        {'latitude': 26.5321558, 'longitude': 88.6797383}, // Point 3
+        {'latitude': 26.53219, 'longitude': 88.6797918}, // Point 4
+      ];
+
+      setState(() {
+        _coordinatesTest = manualCoordinates;
+      });
+
+      if (_coordinatesTest.length == _maxCoordinates) {
+        //  _calculateArea();
+        List<LatLng> points = _coordinatesTest
+            .map((coord) => LatLng(coord['latitude'], coord['longitude']))
+            .toList();
+
+        try {
+          double area = calculatePolygonArea(points);
+          print("Area -> $area");
+          double areaInHectares = area / 10000;
+          //double areaInHectares = 10000;
+
+          print("Calculated Area: $areaInHectares hectre");
+          setState(() {
+            _area = areaInHectares;
+            print(
+                'Area of the quadrilateral Test: ${_area.toStringAsFixed(12)} hectre');
+          });
+        } catch (e) {
+          print("Error: $e");
+        }
+      }
+
       if (_coordinates.length == _maxCoordinates) {
         //  _calculateArea();
         List<LatLng> points = _coordinates
@@ -87,12 +122,12 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
         try {
           double area = calculatePolygonArea(points);
           double areaInHectares = area / 10000;
+          //double areaInHectares = 10000;
 
           print("Calculated Area: $areaInHectares hectre");
           setState(() {
             _area = areaInHectares;
             print('Area of the quadrilateral: $_area hectre');
-// Update the area if needed
           });
         } catch (e) {
           print("Error: $e");
@@ -118,35 +153,35 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
   //   });
   // }
 
-  void _calculateArea() {
-    if (_coordinates.length < _maxCoordinates) return;
+  // void _calculateArea() {
+  //   if (_coordinates.length < _maxCoordinates) return;
 
-    const double R = 6371000; // Radius of the Earth in meters
-    double sum1 = 0.0, sum2 = 0.0;
+  //   const double R = 6371000; // Radius of the Earth in meters
+  //   double sum1 = 0.0, sum2 = 0.0;
 
-    // Convert latitude and longitude to Cartesian coordinates
-    List<Map<String, double>> cartesianCoords = _coordinates.map((coord) {
-      double lat = coord['latitude']! * (pi / 180); // Convert to radians
-      double lon = coord['longitude']! * (pi / 180); // Convert to radians
-      return {
-        'x': R * cos(lat) * cos(lon),
-        'y': R * cos(lat) * sin(lon),
-      };
-    }).toList();
+  //   // Convert latitude and longitude to Cartesian coordinates
+  //   List<Map<String, double>> cartesianCoords = _coordinates.map((coord) {
+  //     double lat = coord['latitude']! * (pi / 180); // Convert to radians
+  //     double lon = coord['longitude']! * (pi / 180); // Convert to radians
+  //     return {
+  //       'x': R * cos(lat) * cos(lon),
+  //       'y': R * cos(lat) * sin(lon),
+  //     };
+  //   }).toList();
 
-    for (int i = 0; i < cartesianCoords.length; i++) {
-      final current = cartesianCoords[i];
-      final next = cartesianCoords[(i + 1) % _maxCoordinates];
+  //   for (int i = 0; i < cartesianCoords.length; i++) {
+  //     final current = cartesianCoords[i];
+  //     final next = cartesianCoords[(i + 1) % _maxCoordinates];
 
-      sum1 += current['x']! * next['y']!;
-      sum2 += current['y']! * next['x']!;
-    }
+  //     sum1 += current['x']! * next['y']!;
+  //     sum2 += current['y']! * next['x']!;
+  //   }
 
-    setState(() {
-      _area = (sum1 - sum2).abs() / 2.0;
-      print("area -> ${_area}"); // Area in square meters
-    });
-  }
+  //   setState(() {
+  //     _area = (sum1 - sum2).abs() / 2.0;
+  //     print("area -> ${_area}"); // Area in square meters
+  //   });
+  // }
 
   double calculatePolygonArea(List<LatLng> points) {
     if (points.length != 4) {
@@ -214,12 +249,12 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
                 SizedBox(width: 10),
                 Expanded(
                   child: TextField(
-                    enabled: false,
+                    enabled: true,
                     decoration: InputDecoration(
                       labelText: "Area",
                       hintText: _area == 0
                           ? "..."
-                          : "${_area.toStringAsFixed(2)} sq. meters",
+                          : "${_area.toStringAsFixed(5)} sq. meters",
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -230,7 +265,8 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
           (_coordinates.length >= 4)
               ? ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context, _coordinates);
+                    Navigator.pop(
+                        context, {"coordinate": _coordinates, "area": _area});
                   },
                   child: Text("Done"),
                 )

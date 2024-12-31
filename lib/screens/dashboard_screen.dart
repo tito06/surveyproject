@@ -1,4 +1,6 @@
-import 'package:cane_survey/new_survey.dart';
+import 'package:cane_survey/screens/login_screen.dart';
+import 'package:cane_survey/screens/new_survey.dart';
+import 'package:cane_survey/shared_pref_helper.dart';
 import 'package:flutter/material.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -11,15 +13,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Can Survey Dashboard'),
+        title: const Text('Can Survey Dashboard'),
         backgroundColor: Colors.green[700],
         elevation: 0,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.green[700],
+              ),
+              child: const Center(
+                child: Text(
+                  'Cane Survey App',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Logout'),
+              onTap: () async {
+                await SharedPrefHelper
+                    .clearPreferences(); // Clear the saved token
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                  (route) => false, // Remove all previous routes
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: Stack(
         children: [
           // Background image
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               image: DecorationImage(
                 image: AssetImage('assets/bgm.png'), // Add your image here
                 fit: BoxFit.cover,

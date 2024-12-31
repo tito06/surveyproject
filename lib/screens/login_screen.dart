@@ -1,5 +1,5 @@
-import 'package:cane_survey/dashboard_screen.dart';
-import 'package:cane_survey/login_view_model.dart';
+import 'package:cane_survey/screens/dashboard_screen.dart';
+import 'package:cane_survey/view_models/login_view_model.dart';
 import 'package:cane_survey/shared_pref_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -31,6 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
         final loginResponse = await _loginViewModel.login(requestBody);
         if (loginResponse.containsKey('token')) {
           await SharedPrefHelper.saveToken(loginResponse['token']);
+          await SharedPrefHelper.saveMillId(millId);
+
           Navigator.push(
             context,
             MaterialPageRoute(
