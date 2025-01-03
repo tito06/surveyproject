@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:geodesy/geodesy.dart';
 import 'package:geolocator/geolocator.dart';
 
+import 'package:area_polygon/area_polygon.dart';
+
 class LocationTrackingScreen extends StatefulWidget {
   @override
   _LocationTrackingScreenState createState() => _LocationTrackingScreenState();
@@ -17,6 +19,8 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
   List<Map<String, dynamic>> _coordinatesTest = [];
 
   final int _maxCoordinates = 4;
+
+  double earthRadius = 6371000.0;
 
   @override
   void initState() {
@@ -86,45 +90,33 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
         {'latitude': 26.53219, 'longitude': 88.6797918}, // Point 4
       ];
 
+      List<List<double>> points = [
+        [26.532582, 88.6796994],
+        [26.5323712, 88.6796012],
+        [26.5321558, 88.6797383],
+        [26.53219, 88.6797918]
+      ];
+
       setState(() {
         _coordinatesTest = manualCoordinates;
       });
 
-      if (_coordinatesTest.length == _maxCoordinates) {
-        //  _calculateArea();
-        List<LatLng> points = _coordinatesTest
-            .map((coord) => LatLng(coord['latitude'], coord['longitude']))
-            .toList();
-
-        try {
-          double area = calculatePolygonArea(points);
-          print("Area -> $area");
-          double areaInHectares = area / 10000;
-          //double areaInHectares = 10000;
-
-          print("Calculated Area: $areaInHectares hectre");
-          setState(() {
-            _area = areaInHectares;
-            print(
-                'Area of the quadrilateral Test: ${_area.toStringAsFixed(12)} hectre');
-          });
-        } catch (e) {
-          print("Error: $e");
-        }
-      }
-
       if (_coordinates.length == _maxCoordinates) {
         //  _calculateArea();
-        List<LatLng> points = _coordinates
-            .map((coord) => LatLng(coord['latitude'], coord['longitude']))
-            .toList();
+        // List<LatLng> points = _coordinates
+        //     .map((coord) => LatLng(coord['latitude'], coord['longitude']))
+        //     .toList();
 
         try {
-          double area = calculatePolygonArea(points);
+          //double area = calculatePolygonArea(points);
+          double area = calculateGeodesicArea(points);
+
+          // double area = calculateArea(point);
+
           double areaInHectares = area / 10000;
           //double areaInHectares = 10000;
 
-          print("Calculated Area: $areaInHectares hectre");
+          print("Calculated Area: $area sq m");
           setState(() {
             _area = areaInHectares;
             print('Area of the quadrilateral: $_area hectre');
@@ -136,65 +128,26 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
     }
   }
 
-  // void _calculateArea() {
-  //   if (_coordinates.length < _maxCoordinates) return;
+  double calculateGeodesicArea(List<List<double>> points) {
+    int n = points.length;
+    double area = 0.0;
 
-  //   double sum1 = 0.0, sum2 = 0.0;
-  //   for (int i = 0; i < _coordinates.length; i++) {
-  //     final current = _coordinates[i];
-  //     final next = _coordinates[(i + 1) % _maxCoordinates];
+    for (int i = 0; i < n; i++) {
+      int j = (i + 1) % n;
 
-  //     sum1 += current['latitude'] * next['longitude'];
-  //     sum2 += current['longitude'] * next['latitude'];
-  //   }
+      // Convert latitude and longitude to radians
+      double lat1 = points[i][0] * pi / 180;
+      double lon1 = points[i][1] * pi / 180;
+      double lat2 = points[j][0] * pi / 180;
+      double lon2 = points[j][1] * pi / 180;
 
-  //   setState(() {
-  //     _area = (sum1 - sum2).abs() / 2.0;
-  //   });
-  // }
-
-  // void _calculateArea() {
-  //   if (_coordinates.length < _maxCoordinates) return;
-
-  //   const double R = 6371000; // Radius of the Earth in meters
-  //   double sum1 = 0.0, sum2 = 0.0;
-
-  //   // Convert latitude and longitude to Cartesian coordinates
-  //   List<Map<String, double>> cartesianCoords = _coordinates.map((coord) {
-  //     double lat = coord['latitude']! * (pi / 180); // Convert to radians
-  //     double lon = coord['longitude']! * (pi / 180); // Convert to radians
-  //     return {
-  //       'x': R * cos(lat) * cos(lon),
-  //       'y': R * cos(lat) * sin(lon),
-  //     };
-  //   }).toList();
-
-  //   for (int i = 0; i < cartesianCoords.length; i++) {
-  //     final current = cartesianCoords[i];
-  //     final next = cartesianCoords[(i + 1) % _maxCoordinates];
-
-  //     sum1 += current['x']! * next['y']!;
-  //     sum2 += current['y']! * next['x']!;
-  //   }
-
-  //   setState(() {
-  //     _area = (sum1 - sum2).abs() / 2.0;
-  //     print("area -> ${_area}"); // Area in square meters
-  //   });
-  // }
-
-  double calculatePolygonArea(List<LatLng> points) {
-    if (points.length != 4) {
-      throw ArgumentError(
-          'Exactly 4 coordinates are required to calculate the area.');
+      // Shoelace formula in spherical coordinates
+      area += (lon2 - lon1) * (2 + sin(lat1) + sin(lat2));
     }
 
-    // Geodesy instance
-    final geodesy = Geodesy();
-
-    // Calculate the area
-    double area = geodesy.calculatePolygonArea(points);
-    return area; // Area is in square meters
+    // Final area calculation (absolute value)
+    area = area.abs() * earthRadius * earthRadius / 2.0;
+    return area; // Area in square meters
   }
 
   void _resetTracking() {
