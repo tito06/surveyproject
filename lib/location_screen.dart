@@ -90,13 +90,6 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
         {'latitude': 26.53219, 'longitude': 88.6797918}, // Point 4
       ];
 
-      List<List<double>> points = [
-        [26.532582, 88.6796994],
-        [26.5323712, 88.6796012],
-        [26.5321558, 88.6797383],
-        [26.53219, 88.6797918]
-      ];
-
       setState(() {
         _coordinatesTest = manualCoordinates;
       });
@@ -106,6 +99,10 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
         // List<LatLng> points = _coordinates
         //     .map((coord) => LatLng(coord['latitude'], coord['longitude']))
         //     .toList();
+
+        List<List<double>> points = manualCoordinates.map((coord) {
+          return [coord['latitude'] as double, coord['longitude'] as double];
+        }).toList();
 
         try {
           //double area = calculatePolygonArea(points);
