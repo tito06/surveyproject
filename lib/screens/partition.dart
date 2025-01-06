@@ -17,6 +17,7 @@ class _PartitionScreenState extends State<PartitionScreen> {
   String? selectedPartion;
   final TextEditingController _inputPartition = TextEditingController();
   List<Map<String, dynamic>>? areaData;
+  double totalArea = 0.0;
 
   @override
   void initState() {
@@ -24,8 +25,10 @@ class _PartitionScreenState extends State<PartitionScreen> {
     _inputPartition.text = "";
 
     selectedPartion = partion[0];
+    totalArea = widget.surveyData!["total_area"];
 
     print(widget.surveyData);
+    print(totalArea);
   }
 
   @override
@@ -57,170 +60,185 @@ class _PartitionScreenState extends State<PartitionScreen> {
             child: SingleChildScrollView(
                 child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          DropdownButtonFormField<String>(
-                            value: selectedPartion,
-                            items: partion.map((partion) {
-                              return DropdownMenuItem<String>(
-                                value: partion,
-                                child: Text(partion),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                selectedPartion = newValue;
-                              });
-                            },
-                            decoration: const InputDecoration(
-                              labelText: "Numner of Partion",
-                              border: OutlineInputBorder(),
+                    child: totalArea == 0.00
+                        ? const Center(
+                            child: Text(
+                              "Total area can not be 0.0",
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          if (selectedPartion != "No partition")
-                            Row(children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _inputPartition,
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                                DropdownButtonFormField<String>(
+                                  value: selectedPartion,
+                                  items: partion.map((partion) {
+                                    return DropdownMenuItem<String>(
+                                      value: partion,
+                                      child: Text(partion),
+                                    );
+                                  }).toList(),
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      selectedPartion = newValue;
+                                    });
+                                  },
                                   decoration: const InputDecoration(
-                                    labelText: "Your Share Area (%)",
+                                    labelText: "Numner of Partion",
                                     border: OutlineInputBorder(),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              ElevatedButton(
-                                style: ButtonStyle(
-                                    backgroundColor:
-                                        WidgetStateProperty.all<Color>(
-                                            const Color.fromARGB(
-                                                255, 146, 214, 148))),
-                                onPressed: () async {
-                                  final result = await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => AreaScreen(
-                                                balanceArea: double.parse(
-                                                    _inputPartition.value.text
-                                                        .trim()),
-                                                surveyData: surveyData,
-                                              )));
-
-                                  if (result != null) {
-                                    setState(() {
-                                      areaData = result;
-                                    });
-                                  }
-                                },
-                                child: Text(
-                                  "Add Partition",
-                                  style: TextStyle(color: Colors.white),
+                                const SizedBox(
+                                  height: 16,
                                 ),
-                              ),
-                            ]),
-                          SizedBox(height: 20),
-                          if (areaData != null && areaData != " ") ...[
-                            const Text(
-                              "Partition:",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            ListView.builder(
-                              shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
-                              itemCount: areaData!.length,
-                              itemBuilder: (context, index) {
-                                final areadata = areaData![index];
-                                return Card(
-                                    elevation: 3,
-                                    margin: EdgeInsets.only(bottom: 10),
-                                    child: Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            // Text(
-                                            //   "Village: ${areadata['village']}",
-                                            //   style: const TextStyle(
-                                            //       fontSize: 18,
-                                            //       fontWeight: FontWeight.bold),
-                                            // ),
-                                            // SizedBox(height: 4),
-                                            // Text(
-                                            //   "Village code: ${areadata['villageCode']}",
-                                            //   style: const TextStyle(
-                                            //       fontSize: 18,
-                                            //       fontWeight: FontWeight.bold),
-                                            // ),
-                                            // SizedBox(height: 4),
-                                            // Text(
-                                            //   "Grower: ${areadata['grower']}",
-                                            //   style: const TextStyle(
-                                            //       fontSize: 18,
-                                            //       fontWeight: FontWeight.bold),
-                                            // ),
-                                            // SizedBox(height: 4),
-                                            // Text(
-                                            //   "Grower code: ${areadata['growerCode']}",
-                                            //   style: const TextStyle(
-                                            //       fontSize: 18,
-                                            //       fontWeight: FontWeight.bold),
-                                            // ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              "Area:  ${areadata['area']} %",
-                                              style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              "Total Area:  ${areadata['totalArea']} hectre",
-                                              style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        )));
-                              },
-                            ),
-                          ],
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Center(
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                      WidgetStateProperty.all<Color>(
-                                          const Color.fromARGB(
-                                              255, 146, 214, 148))),
-                              onPressed: () {
-                                surveyData['no_of_partition'] = selectedPartion;
-                                surveyData['share_area'] = areaData;
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            AgricultureFormScreen(
-                                              surveyData: surveyData,
-                                            )));
-                              },
-                              child: Text(
-                                "Next",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ])))));
+                                if (selectedPartion != "No partition")
+                                  Row(children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _inputPartition,
+                                        decoration: const InputDecoration(
+                                          labelText: "Your Share Area (%)",
+                                          border: OutlineInputBorder(),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    ElevatedButton(
+                                      style: ButtonStyle(
+                                          backgroundColor:
+                                              WidgetStateProperty.all<Color>(
+                                                  const Color.fromARGB(
+                                                      255, 146, 214, 148))),
+                                      onPressed: () async {
+                                        final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    AreaScreen(
+                                                      balanceArea: double.parse(
+                                                          _inputPartition
+                                                              .value.text
+                                                              .trim()),
+                                                      surveyData: surveyData,
+                                                    )));
+
+                                        if (result != null) {
+                                          setState(() {
+                                            areaData = result;
+                                          });
+                                        }
+                                      },
+                                      child: Text(
+                                        "Add Partition",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ]),
+                                SizedBox(height: 20),
+                                if (areaData != null && areaData != " ") ...[
+                                  const Text(
+                                    "Partition:",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(
+                                    height: 10,
+                                  ),
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    itemCount: areaData!.length,
+                                    itemBuilder: (context, index) {
+                                      final areadata = areaData![index];
+                                      return Card(
+                                          elevation: 3,
+                                          margin: EdgeInsets.only(bottom: 10),
+                                          child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(16.0),
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  // Text(
+                                                  //   "Village: ${areadata['village']}",
+                                                  //   style: const TextStyle(
+                                                  //       fontSize: 18,
+                                                  //       fontWeight: FontWeight.bold),
+                                                  // ),
+                                                  // SizedBox(height: 4),
+                                                  // Text(
+                                                  //   "Village code: ${areadata['villageCode']}",
+                                                  //   style: const TextStyle(
+                                                  //       fontSize: 18,
+                                                  //       fontWeight: FontWeight.bold),
+                                                  // ),
+                                                  // SizedBox(height: 4),
+                                                  // Text(
+                                                  //   "Grower: ${areadata['grower']}",
+                                                  //   style: const TextStyle(
+                                                  //       fontSize: 18,
+                                                  //       fontWeight: FontWeight.bold),
+                                                  // ),
+                                                  // SizedBox(height: 4),
+                                                  // Text(
+                                                  //   "Grower code: ${areadata['growerCode']}",
+                                                  //   style: const TextStyle(
+                                                  //       fontSize: 18,
+                                                  //       fontWeight: FontWeight.bold),
+                                                  // ),
+                                                  SizedBox(height: 4),
+                                                  Text(
+                                                    "Area:  ${areadata['area']} %",
+                                                    style: const TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                  SizedBox(height: 4),
+                                                  Text(
+                                                    "Total Area:  ${areadata['totalArea']} hectre",
+                                                    style: const TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                ],
+                                              )));
+                                    },
+                                  ),
+                                ],
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                Center(
+                                  child: ElevatedButton(
+                                    style: ButtonStyle(
+                                        backgroundColor:
+                                            WidgetStateProperty.all<Color>(
+                                                const Color.fromARGB(
+                                                    255, 146, 214, 148))),
+                                    onPressed: () {
+                                      surveyData['no_of_partition'] =
+                                          selectedPartion;
+                                      surveyData['share_area'] = areaData;
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  AgricultureFormScreen(
+                                                    surveyData: surveyData,
+                                                  )));
+                                    },
+                                    child: Text(
+                                      "Next",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ])))));
   }
 }
