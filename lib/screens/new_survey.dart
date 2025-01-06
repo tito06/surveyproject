@@ -94,6 +94,7 @@ class _InputFormScreenState extends State<InputFormScreen> {
           await _surveyViewmodel.fetchGrowers(token, requestDataForGrower);
       setState(() {
         growerData = items;
+
         selectedGrowerCode =
             growerData.isNotEmpty ? growerData[0]['G_CODE']! : "-";
 

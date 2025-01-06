@@ -148,33 +148,33 @@ class _PartitionScreenState extends State<PartitionScreen> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              "Village: ${areadata['village']}",
-                                              style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              "Village code: ${areadata['villageCode']}",
-                                              style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              "Grower: ${areadata['grower']}",
-                                              style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              "Grower code: ${areadata['growerCode']}",
-                                              style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
+                                            // Text(
+                                            //   "Village: ${areadata['village']}",
+                                            //   style: const TextStyle(
+                                            //       fontSize: 18,
+                                            //       fontWeight: FontWeight.bold),
+                                            // ),
+                                            // SizedBox(height: 4),
+                                            // Text(
+                                            //   "Village code: ${areadata['villageCode']}",
+                                            //   style: const TextStyle(
+                                            //       fontSize: 18,
+                                            //       fontWeight: FontWeight.bold),
+                                            // ),
+                                            // SizedBox(height: 4),
+                                            // Text(
+                                            //   "Grower: ${areadata['grower']}",
+                                            //   style: const TextStyle(
+                                            //       fontSize: 18,
+                                            //       fontWeight: FontWeight.bold),
+                                            // ),
+                                            // SizedBox(height: 4),
+                                            // Text(
+                                            //   "Grower code: ${areadata['growerCode']}",
+                                            //   style: const TextStyle(
+                                            //       fontSize: 18,
+                                            //       fontWeight: FontWeight.bold),
+                                            // ),
                                             SizedBox(height: 4),
                                             Text(
                                               "Area:  ${areadata['area']} %",

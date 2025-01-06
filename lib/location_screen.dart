@@ -100,7 +100,11 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
         //     .map((coord) => LatLng(coord['latitude'], coord['longitude']))
         //     .toList();
 
-        List<List<double>> points = manualCoordinates.map((coord) {
+        // List<List<double>> points = manualCoordinates.map((coord) {
+        //   return [coord['latitude'] as double, coord['longitude'] as double];
+        // }).toList();
+
+        List<List<double>> points = _coordinates.map((coord) {
           return [coord['latitude'] as double, coord['longitude'] as double];
         }).toList();
 
