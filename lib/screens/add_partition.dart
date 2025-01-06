@@ -198,6 +198,9 @@ class _AreaScreenState extends State<AreaScreen> {
 
       _areaDataF.add({
         'share_area_percent': area ?? 0.0,
+        'totalArea': remainingAreaInHectre,
+        'growerCode': growerCode,
+        'villageCode': villageCode,
       });
 
       if (onPress == true) {
@@ -231,10 +234,12 @@ class _AreaScreenState extends State<AreaScreen> {
     Map<String, dynamic> surveyData = widget.surveyData ?? {};
 
     //totalArea = double.parse(surveyData["area"]);
-    if (surveyData["area"] != null && surveyData["area"] is String) {
-      totalArea = double.tryParse(surveyData["area"]) ?? 0.0;
-    } else if (surveyData["area"] != null && surveyData["area"] is double) {
-      totalArea = surveyData["area"];
+    if (surveyData["total_area"] != null &&
+        surveyData["total_area"] is String) {
+      totalArea = double.tryParse(surveyData["total_area"]) ?? 0.0;
+    } else if (surveyData["total_area"] != null &&
+        surveyData["total_area"] is double) {
+      totalArea = surveyData["total_area"];
     }
 
     if (!onPress)
@@ -296,6 +301,9 @@ class _AreaScreenState extends State<AreaScreen> {
                 SizedBox(height: 20),
                 if (balAreaPercent != 0.0)
                   ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all<Color>(
+                            const Color.fromARGB(255, 146, 214, 148))),
                     onPressed: () {
                       _showAddDialog(surveyData["village_code"], totalArea);
                     },
@@ -303,6 +311,9 @@ class _AreaScreenState extends State<AreaScreen> {
                   )
                 else
                   ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all<Color>(
+                            const Color.fromARGB(255, 146, 214, 148))),
                     onPressed: () {
                       Navigator.pop(context, _areaDataF);
                     },

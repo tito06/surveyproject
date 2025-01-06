@@ -383,6 +383,9 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all<Color>(
+                            const Color.fromARGB(255, 146, 214, 148))),
                     onPressed: () {
                       printFullJson(surveyData);
 
@@ -395,13 +398,22 @@ class _AgricultureFormScreenState extends State<AgricultureFormScreen> {
                         ),
                       );
                     },
-                    child: const Text("Submit"),
+                    child: const Text(
+                      "Submit",
+                      style: TextStyle(color: Colors.black),
+                    ),
                   ),
                   ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all<Color>(
+                            const Color.fromARGB(255, 146, 214, 148))),
                     onPressed: () {
                       // Cancel logic
                     },
-                    child: const Text("Cancel"),
+                    child: const Text(
+                      "Cancel",
+                      style: TextStyle(color: Colors.black),
+                    ),
                   ),
                 ],
               ),

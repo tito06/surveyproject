@@ -199,7 +199,7 @@ class _InputFormScreenState extends State<InputFormScreen> {
         appBar: AppBar(
           title: const Text(
             "New Survey(1)",
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.black),
           ),
           backgroundColor: Colors.green,
         ),

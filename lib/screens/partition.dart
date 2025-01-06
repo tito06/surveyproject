@@ -28,7 +28,7 @@ class _PartitionScreenState extends State<PartitionScreen> {
     totalArea = widget.surveyData!["total_area"];
 
     print(widget.surveyData);
-    print(totalArea);
+    print("totalArea------> $totalArea");
   }
 
   @override
@@ -40,7 +40,7 @@ class _PartitionScreenState extends State<PartitionScreen> {
         appBar: AppBar(
           title: const Text(
             "New Survey(2)",
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.black),
           ),
           backgroundColor: Colors.green,
         ),
@@ -131,7 +131,7 @@ class _PartitionScreenState extends State<PartitionScreen> {
                                       },
                                       child: Text(
                                         "Add Partition",
-                                        style: TextStyle(color: Colors.white),
+                                        style: TextStyle(color: Colors.black),
                                       ),
                                     ),
                                   ]),
@@ -174,7 +174,8 @@ class _PartitionScreenState extends State<PartitionScreen> {
                                                   //   "Village code: ${areadata['villageCode']}",
                                                   //   style: const TextStyle(
                                                   //       fontSize: 18,
-                                                  //       fontWeight: FontWeight.bold),
+                                                  //       fontWeight:
+                                                  //           FontWeight.bold),
                                                   // ),
                                                   // SizedBox(height: 4),
                                                   // Text(
@@ -188,11 +189,12 @@ class _PartitionScreenState extends State<PartitionScreen> {
                                                   //   "Grower code: ${areadata['growerCode']}",
                                                   //   style: const TextStyle(
                                                   //       fontSize: 18,
-                                                  //       fontWeight: FontWeight.bold),
+                                                  //       fontWeight:
+                                                  //           FontWeight.bold),
                                                   // ),
                                                   SizedBox(height: 4),
                                                   Text(
-                                                    "Area:  ${areadata['area']} %",
+                                                    "Area:  ${areadata['share_area_percent']} %",
                                                     style: const TextStyle(
                                                         fontSize: 18,
                                                         fontWeight:
@@ -235,7 +237,7 @@ class _PartitionScreenState extends State<PartitionScreen> {
                                     },
                                     child: Text(
                                       "Next",
-                                      style: TextStyle(color: Colors.white),
+                                      style: TextStyle(color: Colors.black),
                                     ),
                                   ),
                                 ),
