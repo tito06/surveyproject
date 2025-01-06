@@ -89,21 +89,32 @@ class _InputFormScreenState extends State<InputFormScreen> {
       "mill_id": "$millId",
       "village_id": villId
     };
+    setState(() {
+      isGrowerLoading = true; // Show loading indicator while fetching data
+    });
+
     try {
       final items =
           await _surveyViewmodel.fetchGrowers(token, requestDataForGrower);
+
       setState(() {
         growerData = items;
+        isGrowerLoading = false; // Stop loading after data is fetched
 
-        selectedGrowerCode =
-            growerData.isNotEmpty ? growerData[0]['G_CODE']! : "-";
-
-        isGrowerLoading = false;
+        if (growerData.isNotEmpty) {
+          selectedGrowerCode = growerData[0]['G_CODE']!;
+          selectedGrower = growerData[0]['G_NAME']!;
+        } else {
+          selectedGrowerCode = "No Grower Found";
+          selectedGrower = "";
+        }
       });
     } catch (e) {
       print("Error fetching grower name: $e");
       setState(() {
-        isVillageLoading = false;
+        selectedGrowerCode = "Error fetching data";
+        selectedGrower = "";
+        isGrowerLoading = false;
       });
     }
   }
@@ -280,22 +291,34 @@ class _InputFormScreenState extends State<InputFormScreen> {
                       if (isGrowerLoading) // Show the loader while fetching village data
                         const Center(child: CircularProgressIndicator()),
 
-                      if (!isGrowerLoading) ...[
+                      if (isGrowerLoading) ...[
+                        Center(), // Show loading indicator
+                      ] else if (growerData.isEmpty) ...[
+                        const Center(
+                          child: Text(
+                            "No Grower Data Available",
+                            style: TextStyle(fontSize: 16, color: Colors.black),
+                          ),
+                        ),
+                      ] else ...[
                         _buildDropdownField(
-                            "Select Growers",
-                            growerData
-                                .map((grower) =>
-                                    "${grower['G_CODE']} / ${grower['G_NAME']}")
-                                .toList(),
-                            selectedGrowerCode, (String? newValue) {
-                          setState(() {
-                            selectedGrowerCode = newValue != null
-                                ? newValue.split(' / ')[0]
-                                : '';
-                            selectedGrower =
-                                newValue != null ? newValue.split('/')[1] : "";
-                          });
-                        })
+                          "Select Growers",
+                          growerData
+                              .map((grower) =>
+                                  "${grower['G_CODE']} / ${grower['G_NAME']}")
+                              .toList(),
+                          selectedGrowerCode,
+                          (String? newValue) {
+                            setState(() {
+                              selectedGrowerCode = newValue != null
+                                  ? newValue.split(' / ')[0]
+                                  : '';
+                              selectedGrower = newValue != null
+                                  ? newValue.split(' / ')[1].trim()
+                                  : "";
+                            });
+                          },
+                        )
                       ],
 
                       const SizedBox(height: 20),

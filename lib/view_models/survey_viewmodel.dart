@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:cane_survey/models/master_model.dart';
 import 'package:http/http.dart' as http;
 
 class SurveyViewmodel {
+  late bool villageSuccess;
+
   Future<List<Map<String, String>>> fetchVillages(
       String? token, Map<String, String> parameters) async {
     final response = await http.post(
@@ -38,38 +41,49 @@ class SurveyViewmodel {
 
   Future<List<Map<String, String>>> fetchGrowers(
       String? token, Map<String, String> parameters) async {
-    final response = await http.post(
-      Uri.parse("https://cda.namisite.in/api/fetchGrower"),
-      body: json.encode(parameters),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    ).timeout(Duration(seconds: 30));
+    try {
+      final response = await http.post(
+        Uri.parse("https://cda.namisite.in/api/fetchGrower"),
+        body: json.encode(parameters),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(Duration(seconds: 30));
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
 
-      print("Token -> $token");
+        // Check if response contains 'success' and it's true
+        if (data is Map<String, dynamic> && data['success'] == true) {
+          if (data['data'] is List) {
+            final growers = data['data'] as List;
+            villageSuccess = true;
 
-      if (data is Map<String, dynamic> && data['data'] is List) {
-        final growers = data['data'] as List;
-        // Map the list to extract both village code and name
-        return growers.map((grower) {
-          return {
-            'G_CODE': grower['G_CODE'].toString(),
-            'G_NAME': grower['G_NAME'].toString().trim() +
-                " " +
-                '(' +
-                grower['G_FATHER'].toString().trim() +
-                ')',
-          };
-        }).toList();
+            return growers.map((grower) {
+              return {
+                'G_CODE': grower['G_CODE'].toString(),
+                'G_NAME': grower['G_NAME'].toString().trim() +
+                    " " +
+                    '(' +
+                    grower['G_FATHER'].toString().trim() +
+                    ')',
+              };
+            }).toList();
+          } else {
+            villageSuccess = false;
+            throw Exception('Invalid data format');
+          }
+        } else {
+          villageSuccess = false;
+          throw Exception(data['message'] ?? 'Failed to load data');
+        }
       } else {
-        throw Exception('Failed to load data');
+        throw Exception('HTTP Error: ${response.statusCode}');
       }
-    } else {
-      throw Exception('Failed to load data');
+    } catch (e) {
+      villageSuccess = false;
+      throw Exception('Error: $e');
     }
   }
 
