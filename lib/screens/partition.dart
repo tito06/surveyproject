@@ -60,7 +60,7 @@ class _PartitionScreenState extends State<PartitionScreen> {
             child: SingleChildScrollView(
                 child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: totalArea == 0.00
+                    child: totalArea == 0.00000
                         ? const Center(
                             child: Text(
                               "Total area can not be 0.0",

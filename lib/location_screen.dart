@@ -1,9 +1,8 @@
+import 'dart:async';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:geodesy/geodesy.dart';
 import 'package:geolocator/geolocator.dart';
-
 import 'package:area_polygon/area_polygon.dart';
 
 class LocationTrackingScreen extends StatefulWidget {
@@ -11,55 +10,56 @@ class LocationTrackingScreen extends StatefulWidget {
   _LocationTrackingScreenState createState() => _LocationTrackingScreenState();
 }
 
-class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
+class _LocationTrackingScreenState extends State<LocationTrackingScreen>
+    with WidgetsBindingObserver {
   Position? _currentPosition;
   double _distance = 0.0;
   double _area = 0.0;
   List<Map<String, dynamic>> _coordinates = [];
   List<Map<String, dynamic>> _coordinatesTest = [];
-
   final int _maxCoordinates = 4;
-
   double earthRadius = 6371000.0;
+
+  late StreamSubscription<Position> _positionStreamSubscription;
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    WidgetsBinding.instance.addObserver(this);
+    _startLocationStream();
   }
 
-  Future<void> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied.');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
-    }
-
-    Geolocator.getPositionStream().listen((Position position) {
+  void _startLocationStream() {
+    _positionStreamSubscription =
+        Geolocator.getPositionStream().listen((Position position) {
       setState(() {
         _currentPosition = position;
       });
     });
   }
 
+  void _stopLocationStream() {
+    _positionStreamSubscription.cancel();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _stopLocationStream();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _stopLocationStream();
+    } else if (state == AppLifecycleState.resumed) {
+      _startLocationStream();
+    }
+  }
+
   void _addCoordinates() {
     if (_currentPosition == null) return;
-
     final latitude = _currentPosition!.latitude;
     final longitude = _currentPosition!.longitude;
 
@@ -95,32 +95,17 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
       });
 
       if (_coordinates.length == _maxCoordinates) {
-        //  _calculateArea();
-        // List<LatLng> points = _coordinates
-        //     .map((coord) => LatLng(coord['latitude'], coord['longitude']))
-        //     .toList();
-
-        // List<List<double>> points = manualCoordinates.map((coord) {
-        //   return [coord['latitude'] as double, coord['longitude'] as double];
-        // }).toList();
-
         List<List<double>> points = _coordinates.map((coord) {
           return [coord['latitude'] as double, coord['longitude'] as double];
         }).toList();
 
         try {
-          //double area = calculatePolygonArea(points);
           double area = calculateGeodesicArea(points);
-
-          // double area = calculateArea(point);
-
           double areaInHectares = area / 10000;
-          //double areaInHectares = 10000;
-
           print("Calculated Area: $area sq m");
           setState(() {
             _area = areaInHectares;
-            print('Area of the quadrilateral: $_area hectre');
+            print('Area of the quadrilateral: $_area hectares');
           });
         } catch (e) {
           print("Error: $e");
@@ -136,19 +121,16 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
     for (int i = 0; i < n; i++) {
       int j = (i + 1) % n;
 
-      // Convert latitude and longitude to radians
       double lat1 = points[i][0] * pi / 180;
       double lon1 = points[i][1] * pi / 180;
       double lat2 = points[j][0] * pi / 180;
       double lon2 = points[j][1] * pi / 180;
 
-      // Shoelace formula in spherical coordinates
       area += (lon2 - lon1) * (2 + sin(lat1) + sin(lat2));
     }
 
-    // Final area calculation (absolute value)
     area = area.abs() * earthRadius * earthRadius / 2.0;
-    return area; // Area in square meters
+    return area;
   }
 
   void _resetTracking() {
